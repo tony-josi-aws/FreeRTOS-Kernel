@@ -52,6 +52,15 @@ jobs:
         working-directory: ./local_kernel
         run: git checkout -b ${{ github.event.inputs.version_number }} ${{ github.event.inputs.commit_id }}
 
+      - name: Update Source files with tags
+        run: |
+          # Install deps and run
+          pip install -r ./tools/.github/scripts/release-requirements.txt
+          ./tools/.github/scripts/release.py FreeRTOS --kernel-repo-path=local_kernel --kernel-commit=${{ env.COMMIT_SHA }} --new-kernel-version=${{ github.event.inputs.version_number }} --new-kernel-main-br-version=${{ github.event.inputs.main_br_version }} --defer-release=True
+          exit $?
+        env:
+            GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
       - name: Generate SBOM
         uses: FreeRTOS/CI-CD-Github-Actions/sbom-generator@main
         with:
@@ -70,7 +79,7 @@ jobs:
         run: |
           # Install deps and run
           pip install -r ./tools/.github/scripts/release-requirements.txt
-          ./tools/.github/scripts/release.py FreeRTOS --kernel-repo-path=local_kernel --kernel-commit=${{ env.COMMIT_SHA }} --new-kernel-version=${{ github.event.inputs.version_number }} --new-kernel-main-br-version=${{ github.event.inputs.main_br_version }}
+          ./tools/.github/scripts/release.py FreeRTOS --kernel-repo-path=local_kernel --kernel-commit=${{ env.COMMIT_SHA }} --new-kernel-version=${{ github.event.inputs.version_number }} --new-kernel-main-br-version=${{ github.event.inputs.main_br_version }} --update-src=False
           exit $?
         env:
             GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
