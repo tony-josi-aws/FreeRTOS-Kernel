@@ -55,8 +55,9 @@ jobs:
       - name: Update Source files with tags
         run: |
           # Install deps and run
+          echo "COMMIT_SHA_1=$(git rev-parse HEAD)" >> $GITHUB_ENV
           pip install -r ./tools/.github/scripts/release-requirements.txt
-          ./tools/.github/scripts/release.py FreeRTOS --kernel-repo-path=local_kernel --kernel-commit=${{ env.COMMIT_SHA }} --new-kernel-version=${{ github.event.inputs.version_number }} --new-kernel-main-br-version=${{ github.event.inputs.main_br_version }} --defer-release
+          ./tools/.github/scripts/release.py FreeRTOS --kernel-repo-path=local_kernel --kernel-commit=${{ env.COMMIT_SHA_1 }} --new-kernel-version=${{ github.event.inputs.version_number }} --new-kernel-main-br-version=${{ github.event.inputs.main_br_version }} --defer-release
           exit $?
         env:
             GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
