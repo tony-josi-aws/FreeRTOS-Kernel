@@ -7,25 +7,25 @@ jobs:
     name: Native GCC
     runs-on: ubuntu-latest
     steps:
-      # - name: Checkout the FreeRTOS/FreeRTOS Repository
-      #   uses: actions/checkout@v3
-      #   with:
-      #     ref: main
-      #     repository: FreeRTOS/FreeRTOS
-      #     submodules: 'recursive'
-      #     fetch-depth: 1
+      - name: Checkout the FreeRTOS/FreeRTOS Repository
+        uses: actions/checkout@v3
+        with:
+          ref: main
+          repository: FreeRTOS/FreeRTOS
+          submodules: 'recursive'
+          fetch-depth: 1
 
-      # # Checkout user pull request changes
-      # - name: Checkout Pull Request
-      #   uses: actions/checkout@v3
-      #   with:
-      #     path: ./FreeRTOS/Source
+      # Checkout user pull request changes
+      - name: Checkout Pull Request
+        uses: actions/checkout@v3
+        with:
+          path: ./FreeRTOS/Source
 
-      # - name: Install GCC
-      #   shell: bash
-      #   run: |
-      #     sudo apt-get -y update
-      #     sudo apt-get -y install build-essential
+      - name: Install GCC
+        shell: bash
+        run: |
+          sudo apt-get -y update
+          sudo apt-get -y install build-essential
 
       - name: Install Coverity Build
         shell: bash
@@ -37,8 +37,7 @@ jobs:
 
       - name: Build Posix_GCC Demo
         shell: bash
+        working-directory: FreeRTOS/Demo/Posix_GCC
         run: |
           export PATH="$PATH:${{env.cov_scan_path}}"
-          cd FreeRTOS/Demo/Posix_GCC
-          cov-build
-          # cov-build --dir cov-int make -j
+          cov-build --dir cov-int make -j
