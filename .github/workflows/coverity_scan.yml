@@ -33,7 +33,7 @@ jobs:
           COVERITY_TOKEN: ${{ secrets.COVERITY_SCAN_TOKEN }}
         run: |
           wget -nv -qO- https://scan.coverity.com/download/linux64 --post-data "token=${COVERITY_TOKEN}&project=FreeRTOS-Kernel" | tar -zx --one-top-level=cov_scan --strip-components 1
-          echo "cov_scan_path=${pwd}/cov_scan/bin" >> $GITHUB_ENV
+          echo "cov_scan_path=$(pwd)/cov_scan/bin" >> $GITHUB_ENV
 
       - name: Build Posix_GCC Demo
         shell: bash
