@@ -35,6 +35,7 @@ jobs:
           wget -nv -qO- https://scan.coverity.com/download/linux64 --post-data "token=${COVERITY_TOKEN}&project=FreeRTOS-Kernel" | tar -zx --one-top-level=cov_scan --strip-components 1
           ls -al cov_scan
           export PATH="$PATH:cov_scan/bin"
+          cov-build
 
       # - name: Build Posix_GCC Demo
       #   shell: bash
