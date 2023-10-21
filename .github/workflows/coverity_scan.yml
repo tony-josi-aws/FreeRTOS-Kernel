@@ -35,10 +35,10 @@ jobs:
           wget https://scan.coverity.com/download/linux64 --post-data "token=${COVERITY_TOKEN}&project=FreeRTOS-Kernel" -O coverity_tool.tgz
           tar -z -x -f coverity_tool.tgz
           pwd
-          ls -al coverity_tool
+          ls -al cov-analysis-linux64-2022.12.2
           echo "$GITHUB_ACTION_PATH"
           echo $PATH
           cd FreeRTOS/Demo/Posix_GCC
           ls -al
-          ../../../coverity_tool/bin/cov-build --dir cov-int make -j
+          ../../../cov-analysis-linux64-2022.12.2/bin/cov-build --dir cov-int make -j
 
