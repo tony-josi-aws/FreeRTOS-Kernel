@@ -33,7 +33,7 @@ jobs:
           COVERITY_TOKEN: ${{ secrets.COVERITY_SCAN_TOKEN }}
         run: |
           wget https://scan.coverity.com/download/linux64 --post-data "token=${COVERITY_TOKEN}&project=FreeRTOS-Kernel" -O coverity_tool.tgz
-          tar -xvzf coverity_tool.tgz
+          tar -z -x -f coverity_tool.tgz
           pwd
           ls -al coverity_tool
           echo "$GITHUB_ACTION_PATH"
