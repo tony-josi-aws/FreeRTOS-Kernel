@@ -34,7 +34,7 @@ jobs:
         run: |
           wget https://scan.coverity.com/download/linux64 --post-data "token=${COVERITY_TOKEN}&project=FreeRTOS-Kernel" -O coverity_tool.tgz
           tar -xvzf coverity_tool.tgz
-          PATH=$PATH:$(pwd)/coverity_tool/bin
+          export PATH=$PATH:$(pwd)/coverity_tool/bin
 
 
       - name: Build Posix_GCC Demo
