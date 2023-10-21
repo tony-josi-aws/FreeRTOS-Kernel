@@ -37,8 +37,8 @@ jobs:
 
       - name: Build Posix_GCC Demo
         shell: bash
-        working-directory: FreeRTOS/Demo/Posix_GCC
         run: |
           export PATH="$PATH:${{env.cov_scan_path}}"
+          cd FreeRTOS/Demo/Posix_GCC
           cov-build
           # cov-build --dir cov-int make -j
