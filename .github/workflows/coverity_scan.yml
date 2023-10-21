@@ -7,25 +7,25 @@ jobs:
     name: Native GCC
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout the FreeRTOS/FreeRTOS Repository
-        uses: actions/checkout@v3
-        with:
-          ref: main
-          repository: FreeRTOS/FreeRTOS
-          submodules: 'recursive'
-          fetch-depth: 1
+      # - name: Checkout the FreeRTOS/FreeRTOS Repository
+      #   uses: actions/checkout@v3
+      #   with:
+      #     ref: main
+      #     repository: FreeRTOS/FreeRTOS
+      #     submodules: 'recursive'
+      #     fetch-depth: 1
 
-      # Checkout user pull request changes
-      - name: Checkout Pull Request
-        uses: actions/checkout@v3
-        with:
-          path: ./FreeRTOS/Source
+      # # Checkout user pull request changes
+      # - name: Checkout Pull Request
+      #   uses: actions/checkout@v3
+      #   with:
+      #     path: ./FreeRTOS/Source
 
-      - name: Install GCC
-        shell: bash
-        run: |
-          sudo apt-get -y update
-          sudo apt-get -y install build-essential
+      # - name: Install GCC
+      #   shell: bash
+      #   run: |
+      #     sudo apt-get -y update
+      #     sudo apt-get -y install build-essential
 
       - name: Install Coverity Build
         shell: bash
@@ -33,9 +33,10 @@ jobs:
           COVERITY_TOKEN: ${{ secrets.COVERITY_SCAN_TOKEN }}
         run: |
           wget -nv -qO- https://scan.coverity.com/download/linux64 --post-data "token=${COVERITY_TOKEN}&project=FreeRTOS-Kernel" | tar -zx --one-top-level=cov_scan --strip-components 1
+          ls -al
           export PATH="$PATH:cov_scan/bin"
 
-      - name: Build Posix_GCC Demo
-        shell: bash
-        working-directory: FreeRTOS/Demo/Posix_GCC
-        run: cov-build --dir cov-int make -j
+      # - name: Build Posix_GCC Demo
+      #   shell: bash
+      #   working-directory: FreeRTOS/Demo/Posix_GCC
+      #   run: cov-build --dir cov-int make -j
