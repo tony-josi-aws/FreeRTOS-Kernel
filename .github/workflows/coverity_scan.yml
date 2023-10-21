@@ -35,9 +35,18 @@ jobs:
           wget -nv -qO- https://scan.coverity.com/download/linux64 --post-data "token=${COVERITY_TOKEN}&project=FreeRTOS-Kernel" | tar -zx --one-top-level=cov_scan --strip-components 1
           echo "cov_scan_path=$(pwd)/cov_scan/bin" >> $GITHUB_ENV
 
-      - name: Build Posix_GCC Demo
+      - name: Coverity Build & Upload for Scan
         shell: bash
+        env:
+          COVERITY_TOKEN: ${{ secrets.COVERITY_SCAN_TOKEN }}
         working-directory: FreeRTOS/Demo/Posix_GCC
         run: |
           export PATH="$PATH:${{env.cov_scan_path}}"
           cov-build --dir cov-int make -j
+          tar czvf gcc_posix_fr_kernel.tgz cov-int
+          curl --form token=${COVERITY_TOKEN} \
+            --form email=tonyjosi@amazon.com \
+            --form file=@gcc_posix_fr_kernel.tgz \
+            --form version="Mainline" \
+            --form description="GCC Posix Demo" \
+            https://scan.coverity.com/builds?project=FreeRTOS-Kernel
