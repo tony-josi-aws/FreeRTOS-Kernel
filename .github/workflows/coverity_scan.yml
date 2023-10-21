@@ -40,4 +40,5 @@ jobs:
         working-directory: FreeRTOS/Demo/Posix_GCC
         run: |
           export PATH=$PATH:../../../coverity_tool/bin
+          ls ../../../coverity_tool/bin
           cov-build --dir cov-int make -j
