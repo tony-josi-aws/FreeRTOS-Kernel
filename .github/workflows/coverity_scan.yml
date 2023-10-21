@@ -27,7 +27,7 @@ jobs:
           sudo apt-get -y update
           sudo apt-get -y install build-essential
 
-      - name: Install Coverity Build
+      - name: Install Coverity Build & Build
         shell: bash
         env:
           COVERITY_TOKEN: ${{ secrets.COVERITY_SCAN_TOKEN }}
@@ -35,9 +35,12 @@ jobs:
           wget https://scan.coverity.com/download/linux64 --post-data "token=${COVERITY_TOKEN}&project=FreeRTOS-Kernel" -O coverity_tool.tgz
           tar -xvzf coverity_tool.tgz
           export PATH=$PATH:$(pwd)/coverity_tool/bin
+          pwd
 
 
       - name: Build Posix_GCC Demo
         shell: bash
         working-directory: FreeRTOS/Demo/Posix_GCC
-        run: cov-build --dir cov-int make -j
+        run: |
+          pwd
+          cov-build --dir cov-int make -j
