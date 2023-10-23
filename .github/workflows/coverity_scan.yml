@@ -44,9 +44,10 @@ jobs:
           export PATH="$PATH:${{env.cov_scan_path}}"
           cov-build --dir cov-int make -j
           tar czvf gcc_posix_fr_kernel.tgz cov-int
-          curl --form token=${COVERITY_TOKEN} \
+          COV_SCAN_UPLOAD_STATUS = $(curl --form token=${COVERITY_TOKEN} \
             --form email=tonyjosinew@gmail.com \
             --form file=@gcc_posix_fr_kernel.tgz \
             --form version="Mainline" \
             --form description="GCC Posix Demo" \
-            https://scan.coverity.com/builds?project=FreeRTOS-Kernel
+            https://scan.coverity.com/builds?project=FreeRTOS-Kernel)
+          echo "${COV_SCAN_UPLOAD_STATUS}" | grep -q -e 'Build successfully submitted' || echo >&2 "Error submitting build for analysis: ${COV_SCAN_UPLOAD_STATUS}"
