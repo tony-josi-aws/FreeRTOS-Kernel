@@ -45,7 +45,7 @@ jobs:
           cov-build --dir cov-int make -j
           tar czvf gcc_posix_fr_kernel.tgz cov-int
           curl --form token=${COVERITY_TOKEN} \
-            --form email=tonyjosi@amazon.com \
+            --form email=tonyjosinew@gmail.com \
             --form file=@gcc_posix_fr_kernel.tgz \
             --form version="Mainline" \
             --form description="GCC Posix Demo" \
