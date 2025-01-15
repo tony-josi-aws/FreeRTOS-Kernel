@@ -130,6 +130,12 @@ typedef struct QueueDefinition /* The old naming convention is used to prevent b
         UBaseType_t uxQueueNumber;
         uint8_t ucQueueType;
     #endif
+
+    #if ( ( configUSE_MUTEXES == 1 ) && ( configUSE_MUTEXES_PI_ICPP == 1 ) )
+        UBaseType_t uxCeilingPriority;                     /*< The ceiling priority of the mutex. */
+        ListItem_t xMutexHolderListItem;
+    #endif /*  ( ( configUSE_MUTEXES == 1 ) && ( configUSE_MUTEXES_PI_ICPP == 1 ) ) */
+
 } xQUEUE;
 
 /* The old xQUEUE name is maintained above then typedefed to the new Queue_t
@@ -603,6 +609,47 @@ static void prvInitialiseNewQueue( const UBaseType_t uxQueueLength,
 
 #endif /* configUSE_MUTEXES */
 /*-----------------------------------------------------------*/
+
+#if ( ( configUSE_MUTEXES == 1 ) && ( configSUPPORT_DYNAMIC_ALLOCATION == 1 ) && ( configUSE_MUTEXES_PI_ICPP == 1 ) )
+
+    QueueHandle_t xQueueCreateMutexICPP( const uint8_t ucQueueType, UBaseType_t uxCeilingPriority )
+    {
+        QueueHandle_t xNewQueue;
+        const UBaseType_t uxMutexLength = ( UBaseType_t ) 1, uxMutexSize = ( UBaseType_t ) 0;
+
+        xNewQueue = xQueueGenericCreate( uxMutexLength, uxMutexSize, ucQueueType );
+
+        xNewQueue->uxCeilingPriority = uxCeilingPriority;
+
+        vListInitialiseItem( &( pxNewQueue->xMutexHolderListItem ) );
+
+        /* Set the pxNewQueue as a link back from the ListItem_t.  This is so we can get
+        * back to  the containing Mutex from a generic item in a list. */
+        listSET_LIST_ITEM_OWNER( &( pxNewQueue->xMutexHolderListItem ), pxNewQueue );
+
+        /* Event lists are always in priority order. */
+        listSET_LIST_ITEM_VALUE( &( pxNewQueue->xMutexHolderListItem ), ( TickType_t ) configMAX_PRIORITIES - ( TickType_t ) xNewQueue->uxCeilingPriority ); /*lint !e961 MISRA exception as the casts are only redundant for some ports. */
+
+
+        prvInitialiseMutex( ( Queue_t * ) xNewQueue );
+
+        return xNewQueue;
+    }
+
+#endif /* configUSE_MUTEXES */
+/*-----------------------------------------------------------*/
+
+#if ( ( configUSE_MUTEXES == 1 ) && ( configUSE_MUTEXES_PI_ICPP == 1 ) )
+
+    void vRemoveQueueItemFromList( void * pvQueueHandle )
+    {
+        configASSERT( pvQueueHandle != NULL )
+        QueueHandle_t xNewQueue = (QueueHandle_t) pvQueueHandle;
+        listREMOVE_ITEM( &( pvQueueHandle->xMutexHolderListItem ) );
+        return;
+    }
+
+#endif /* configUSE_MUTEXES */
 
 #if ( ( configUSE_MUTEXES == 1 ) && ( INCLUDE_xSemaphoreGetMutexHolder == 1 ) )
 
@@ -1571,6 +1618,14 @@ BaseType_t xQueueSemaphoreTake( QueueHandle_t xQueue,
                         /* Record the information required to implement
                          * priority inheritance should it become necessary. */
                         pxQueue->u.xSemaphore.xMutexHolder = pvTaskIncrementMutexHeldCount();
+
+                        #if ( configUSE_MUTEXES_PI_ICPP == 1 )
+                            /* If using ICPP for priority inheritance protocol add the mutex to 
+                             * task's list of held mutexes. */
+                            configASSERT(pxQueue->u.xSemaphore.xMutexHolder != NULL );
+                            vInsertMutexToHolderList( pxQueue->u.xSemaphore.xMutexHolder, &( pxQueue->xMutexHolderListItem ) );
+                            xInheritanceOccurred = xTaskCeilingPriorityInherit( pxQueue->uxCeilingPriority );
+                        #endif /* configUSE_MUTEXES_PI_ICPP */
                     }
                     else
                     {
@@ -1643,7 +1698,7 @@ BaseType_t xQueueSemaphoreTake( QueueHandle_t xQueue,
             {
                 traceBLOCKING_ON_QUEUE_RECEIVE( pxQueue );
 
-                #if ( configUSE_MUTEXES == 1 )
+                #if ( ( configUSE_MUTEXES == 1 ) && ( configUSE_MUTEXES_PI_ICPP != 1 ) )
                 {
                     if( pxQueue->uxQueueType == queueQUEUE_IS_MUTEX )
                     {
@@ -1658,7 +1713,7 @@ BaseType_t xQueueSemaphoreTake( QueueHandle_t xQueue,
                         mtCOVERAGE_TEST_MARKER();
                     }
                 }
-                #endif /* if ( configUSE_MUTEXES == 1 ) */
+                #endif /* ( ( configUSE_MUTEXES == 1 ) && ( configUSE_MUTEXES_PI_ICPP != 1 ) ) */
 
                 vTaskPlaceOnEventList( &( pxQueue->xTasksWaitingToReceive ), xTicksToWait );
                 prvUnlockQueue( pxQueue );
@@ -1701,15 +1756,35 @@ BaseType_t xQueueSemaphoreTake( QueueHandle_t xQueue,
                     {
                         taskENTER_CRITICAL();
                         {
-                            UBaseType_t uxHighestWaitingPriority;
+                            #if ( configUSE_MUTEXES_PI_ICPP != 1 )
+                            {
+                                UBaseType_t uxHighestWaitingPriority;
 
-                            /* This task blocking on the mutex caused another
-                             * task to inherit this task's priority.  Now this task
-                             * has timed out the priority should be disinherited
-                             * again, but only as low as the next highest priority
-                             * task that is waiting for the same mutex. */
-                            uxHighestWaitingPriority = prvGetDisinheritPriorityAfterTimeout( pxQueue );
-                            vTaskPriorityDisinheritAfterTimeout( pxQueue->u.xSemaphore.xMutexHolder, uxHighestWaitingPriority );
+                                /* This task blocking on the mutex caused another
+                                * task to inherit this task's priority.  Now this task
+                                * has timed out the priority should be disinherited
+                                * again, but only as low as the next highest priority
+                                * task that is waiting for the same mutex. */
+                                uxHighestWaitingPriority = prvGetDisinheritPriorityAfterTimeout( pxQueue );
+                                vTaskPriorityDisinheritAfterTimeout( pxQueue->u.xSemaphore.xMutexHolder, uxHighestWaitingPriority );
+                            }
+                            #else
+                            {
+                                // TODO
+                                // Get the ceiling priority of next mutex held
+                                // If it not there set to base prio
+                                Queue_t * pxQueueMutex = pvRemoveMutexToHolderList();
+                                if(pxQueueMutex != NULL)
+                                {
+                                    xTaskCeilingPriorityDisInherit(pxQueueMutex->uxCeilingPriority); 
+                                }
+                                else
+                                {
+                                    xTaskCeilingPriorityDisInheritToBasePrio();
+                                }
+
+                            }
+                            #endif /* #if ( configUSE_MUTEXES_PI_ICPP == 1 ) */
                         }
                         taskEXIT_CRITICAL();
                     }
@@ -2189,9 +2264,25 @@ static BaseType_t prvCopyDataToQueue( Queue_t * const pxQueue,
         {
             if( pxQueue->uxQueueType == queueQUEUE_IS_MUTEX )
             {
-                /* The mutex is no longer being held. */
-                xReturn = xTaskPriorityDisinherit( pxQueue->u.xSemaphore.xMutexHolder );
-                pxQueue->u.xSemaphore.xMutexHolder = NULL;
+                #if ( configUSE_MUTEXES_PI_ICPP != 1 )
+                {
+                    /* The mutex is no longer being held. */
+                    xReturn = xTaskPriorityDisinherit( pxQueue->u.xSemaphore.xMutexHolder );
+                    pxQueue->u.xSemaphore.xMutexHolder = NULL;
+                }
+                #else
+                {
+                    Queue_t * pxQueueMutex = pvRemoveMutexToHolderList();
+                    if(pxQueueMutex != NULL)
+                    {
+                        xTaskCeilingPriorityDisInherit(pxQueueMutex->uxCeilingPriority); 
+                    }
+                    else
+                    {
+                        xTaskCeilingPriorityDisInheritToBasePrio();
+                    }
+                }
+                #endif /* #if ( configUSE_MUTEXES_PI_ICPP == 1 ) */
             }
             else
             {

@@ -3103,6 +3103,19 @@ eSleepModeStatus eTaskConfirmSleepModeStatus( void ) PRIVILEGED_FUNCTION;
  */
 TaskHandle_t pvTaskIncrementMutexHeldCount( void ) PRIVILEGED_FUNCTION;
 
+#if ( configUSE_MUTEXES_PI_ICPP == 1 )
+
+    /* Should be called from CS */
+    void vInsertMutexToHolderList( TaskHandle_t xTaskHandle, ListItem_t * pxEventListItem );
+    void * pvRemoveMutexToHolderList();
+        void vTaskInheritedPrioritySet( TaskHandle_t xTask,
+                            UBaseType_t uxNewPriority );
+    BaseType_t xTaskCeilingPriorityInherit( UBaseType_t uxCeilingPriority );
+    BaseType_t xTaskCeilingPriorityDisInherit( UBaseType_t uxDisInheritedPriority );
+    BaseType_t xTaskCeilingPriorityDisInheritToBasePrio();
+
+#endif /* configUSE_MUTEXES_PI_ICPP */
+
 /*
  * For internal use only.  Same as vTaskSetTimeOutState(), but without a critical
  * section.

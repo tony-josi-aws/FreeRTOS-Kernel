@@ -1712,6 +1712,13 @@ void vQueueSetQueueNumber( QueueHandle_t xQueue,
 UBaseType_t uxQueueGetQueueNumber( QueueHandle_t xQueue ) PRIVILEGED_FUNCTION;
 uint8_t ucQueueGetQueueType( QueueHandle_t xQueue ) PRIVILEGED_FUNCTION;
 
+#if ( configUSE_MUTEXES_PI_ICPP == 1 )
+
+    QueueHandle_t xQueueCreateMutexICPP( const uint8_t ucQueueType, UBaseType_t uxCeilingPriority );
+    void vRemoveQueueItemFromList( void * pvQueueHandle );
+
+#endif
+
 
 /* *INDENT-OFF* */
 #ifdef __cplusplus
