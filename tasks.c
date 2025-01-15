@@ -4719,6 +4719,14 @@ TickType_t uxTaskResetEventItemValue( void )
             {
                 pvReturn = listGET_OWNER_OF_HEAD_ENTRY( ( &(pxTCB->xMutexesCurrentlyHeld) ) ); /*lint !e9079 void * is used as this macro is used with timers and co-routines too.  Alignment is known to be fine as the type of the pointer stored and retrieved is the same. */
                 vRemoveQueueItemFromList( pvReturn );
+                if(( listLIST_IS_EMPTY( &(pxTCB->xMutexesCurrentlyHeld) ) == pdFALSE))
+                {
+                	pvReturn = listGET_OWNER_OF_HEAD_ENTRY( ( &(pxTCB->xMutexesCurrentlyHeld) ) );
+                }
+                else
+                {
+                	pvReturn = NULL;
+                }
             }
 
             return pvReturn;
@@ -4779,6 +4787,7 @@ TickType_t uxTaskResetEventItemValue( void )
 
                     pxTCB->uxPriority = uxNewPriority;
 
+#if 0
                     #if ( configUSE_MUTEXES == 1 )
                     {
                         /* Only change the priority being used if the task is not
@@ -4800,7 +4809,7 @@ TickType_t uxTaskResetEventItemValue( void )
                         pxTCB->uxPriority = uxNewPriority;
                     }
                     #endif /* if ( configUSE_MUTEXES == 1 ) */
-
+#endif
                     /* Only reset the event list item value if the value is not
                     * being used for anything else. */
                     if( ( listGET_LIST_ITEM_VALUE( &( pxTCB->xEventListItem ) ) & taskEVENT_LIST_ITEM_VALUE_IN_USE ) == 0UL )
