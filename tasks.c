@@ -929,6 +929,12 @@ static void prvInitialiseNewTask( TaskFunction_t pxTaskCode,
     #if ( configUSE_MUTEXES == 1 )
     {
         pxNewTCB->uxBasePriority = uxPriority;
+
+        #if ( configUSE_MUTEXES_PI_ICPP == 1 )
+        {
+            vListInitialise( &(pxNewTCB->xMutexesCurrentlyHeld) );
+        }
+        #endif
     }
     #endif /* configUSE_MUTEXES */
 
@@ -4694,7 +4700,10 @@ TickType_t uxTaskResetEventItemValue( void )
             TCB_t * pxTCB;
             pxTCB = ( TCB_t * ) xTaskHandle;
 
-            vListInsert( &(pxTCB->xMutexesCurrentlyHeld), pxEventListItem );
+            if( pxTCB != NULL )
+            {
+                vListInsert( &(pxTCB->xMutexesCurrentlyHeld), pxEventListItem );
+            }
 
             return;
         }
@@ -4706,7 +4715,7 @@ TickType_t uxTaskResetEventItemValue( void )
             TCB_t * pxTCB;
             pxTCB = ( TCB_t * ) pxCurrentTCB;
 
-            if( listLIST_IS_EMPTY( &(pxTCB->xMutexesCurrentlyHeld) ) == pdFALSE )
+            if( ( pxTCB != NULL ) && ( listLIST_IS_EMPTY( &(pxTCB->xMutexesCurrentlyHeld) ) == pdFALSE) )
             {
                 pvReturn = listGET_OWNER_OF_HEAD_ENTRY( ( &(pxTCB->xMutexesCurrentlyHeld) ) ); /*lint !e9079 void * is used as this macro is used with timers and co-routines too.  Alignment is known to be fine as the type of the pointer stored and retrieved is the same. */
                 vRemoveQueueItemFromList( pvReturn );
@@ -4853,7 +4862,7 @@ TickType_t uxTaskResetEventItemValue( void )
         {
             BaseType_t xInherited = pdFALSE;
 
-            if ( pxCurrentTCB->uxPriority < uxCeilingPriority )
+            if ( ( pxCurrentTCB != NULL ) && ( pxCurrentTCB->uxPriority < uxCeilingPriority) )
             {
                 vTaskInheritedPrioritySet( pxCurrentTCB, uxCeilingPriority );
                 xInherited = pdTRUE;
@@ -4867,7 +4876,7 @@ TickType_t uxTaskResetEventItemValue( void )
         {
             BaseType_t xDisInherited = pdFALSE;
 
-            if ( pxCurrentTCB->uxPriority > uxDisInheritedPriority )
+            if ( ( pxCurrentTCB != NULL ) && (pxCurrentTCB->uxPriority > uxDisInheritedPriority) )
             {
                 vTaskInheritedPrioritySet( pxCurrentTCB, uxDisInheritedPriority );
                 xDisInherited = pdTRUE;
@@ -4880,7 +4889,7 @@ TickType_t uxTaskResetEventItemValue( void )
         {
             BaseType_t xDisInherited = pdFALSE;
 
-            if ( pxCurrentTCB->uxPriority > pxCurrentTCB->uxBasePriority )
+            if ( ( pxCurrentTCB != NULL ) && (pxCurrentTCB->uxPriority > pxCurrentTCB->uxBasePriority) )
             {
                 vTaskInheritedPrioritySet( pxCurrentTCB, pxCurrentTCB->uxBasePriority );
                 xDisInherited = pdTRUE;

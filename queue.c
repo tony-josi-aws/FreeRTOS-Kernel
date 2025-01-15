@@ -621,14 +621,14 @@ static void prvInitialiseNewQueue( const UBaseType_t uxQueueLength,
 
         xNewQueue->uxCeilingPriority = uxCeilingPriority;
 
-        vListInitialiseItem( &( pxNewQueue->xMutexHolderListItem ) );
+        vListInitialiseItem( &( xNewQueue->xMutexHolderListItem ) );
 
         /* Set the pxNewQueue as a link back from the ListItem_t.  This is so we can get
         * back to  the containing Mutex from a generic item in a list. */
-        listSET_LIST_ITEM_OWNER( &( pxNewQueue->xMutexHolderListItem ), pxNewQueue );
+        listSET_LIST_ITEM_OWNER( &( xNewQueue->xMutexHolderListItem ), xNewQueue );
 
         /* Event lists are always in priority order. */
-        listSET_LIST_ITEM_VALUE( &( pxNewQueue->xMutexHolderListItem ), ( TickType_t ) configMAX_PRIORITIES - ( TickType_t ) xNewQueue->uxCeilingPriority ); /*lint !e961 MISRA exception as the casts are only redundant for some ports. */
+        listSET_LIST_ITEM_VALUE( &( xNewQueue->xMutexHolderListItem ), ( TickType_t ) configMAX_PRIORITIES - ( TickType_t ) xNewQueue->uxCeilingPriority ); /*lint !e961 MISRA exception as the casts are only redundant for some ports. */
 
 
         prvInitialiseMutex( ( Queue_t * ) xNewQueue );
@@ -645,7 +645,7 @@ static void prvInitialiseNewQueue( const UBaseType_t uxQueueLength,
     {
         configASSERT( pvQueueHandle != NULL )
         QueueHandle_t xNewQueue = (QueueHandle_t) pvQueueHandle;
-        listREMOVE_ITEM( &( pvQueueHandle->xMutexHolderListItem ) );
+        listREMOVE_ITEM( &( xNewQueue->xMutexHolderListItem ) );
         return;
     }
 

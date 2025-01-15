@@ -735,6 +735,10 @@ typedef QueueHandle_t SemaphoreHandle_t;
     #define xSemaphoreCreateMutex()    xQueueCreateMutex( queueQUEUE_TYPE_MUTEX )
 #endif
 
+#if ( ( configUSE_MUTEXES == 1 ) && ( configSUPPORT_DYNAMIC_ALLOCATION == 1 ) && ( configUSE_MUTEXES_PI_ICPP == 1 ) )
+#define xSemaphoreCreateMutexICPP(x)		xQueueCreateMutexICPP( queueQUEUE_TYPE_MUTEX, x )
+#endif
+
 /**
  * semphr. h
  * @code{c}

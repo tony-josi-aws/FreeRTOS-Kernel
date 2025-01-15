@@ -1274,6 +1274,9 @@ typedef struct xSTATIC_TCB
     #endif
     #if ( configUSE_MUTEXES == 1 )
         UBaseType_t uxDummy12[ 2 ];
+        #if ( configUSE_MUTEXES_PI_ICPP == 1 )
+            StaticList_t xDummy20;
+        #endif
     #endif
     #if ( configUSE_APPLICATION_TASK_TAG == 1 )
         void * pxDummy14;
@@ -1343,6 +1346,12 @@ typedef struct xSTATIC_QUEUE
         UBaseType_t uxDummy8;
         uint8_t ucDummy9;
     #endif
+
+    #if ( ( configUSE_MUTEXES == 1 ) && ( configUSE_MUTEXES_PI_ICPP == 1 ) )
+        UBaseType_t uxDummy10;                     /*< The ceiling priority of the mutex. */
+        StaticListItem_t xDummy11;
+    #endif /*  ( ( configUSE_MUTEXES == 1 ) && ( configUSE_MUTEXES_PI_ICPP == 1 ) ) */
+
 } StaticQueue_t;
 typedef StaticQueue_t StaticSemaphore_t;
 
