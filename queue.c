@@ -1773,7 +1773,7 @@ BaseType_t xQueueSemaphoreTake( QueueHandle_t xQueue,
                                 // TODO
                                 // Get the ceiling priority of next mutex held
                                 // If it not there set to base prio
-                                Queue_t * pxQueueMutex = pvRemoveMutexToHolderList();
+                                Queue_t * pxQueueMutex = pvRemoveMutexToHolderList( (void * const) pxQueue );
                                 if(pxQueueMutex != NULL)
                                 {
                                     xTaskCeilingPriorityDisInherit(pxQueueMutex->uxCeilingPriority); 
@@ -2272,7 +2272,7 @@ static BaseType_t prvCopyDataToQueue( Queue_t * const pxQueue,
                 }
                 #else
                 {
-                    Queue_t * pxQueueMutex = pvRemoveMutexToHolderList();
+                    Queue_t * pxQueueMutex = pvRemoveMutexToHolderList( (void * const) pxQueue );
                     if(pxQueueMutex != NULL)
                     {
                         xTaskCeilingPriorityDisInherit(pxQueueMutex->uxCeilingPriority); 

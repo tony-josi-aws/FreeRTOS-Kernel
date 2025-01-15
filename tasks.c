@@ -4709,16 +4709,37 @@ TickType_t uxTaskResetEventItemValue( void )
         }
 
         /* Should be called from CS */
-        void * pvRemoveMutexToHolderList()
+        void * pvRemoveMutexToHolderList(void * const pvQueue)
         {
+            ListItem_t * pxListItem;
+            ListItem_t * pxNext;
+            ListItem_t const * pxListEnd;
             void * pvReturn = NULL;
             TCB_t * pxTCB;
             pxTCB = ( TCB_t * ) pxCurrentTCB;
 
             if( ( pxTCB != NULL ) && ( listLIST_IS_EMPTY( &(pxTCB->xMutexesCurrentlyHeld) ) == pdFALSE) )
             {
-                pvReturn = listGET_OWNER_OF_HEAD_ENTRY( ( &(pxTCB->xMutexesCurrentlyHeld) ) ); /*lint !e9079 void * is used as this macro is used with timers and co-routines too.  Alignment is known to be fine as the type of the pointer stored and retrieved is the same. */
-                vRemoveQueueItemFromList( pvReturn );
+
+                pxListItem = listGET_HEAD_ENTRY( &(pxTCB->xMutexesCurrentlyHeld) );
+                pxListEnd = listGET_END_MARKER( &(pxTCB->xMutexesCurrentlyHeld) );
+
+                while( pxListItem != pxListEnd )
+                {
+                    pxNext = listGET_NEXT( pxListItem );
+
+                    pvReturn = listGET_LIST_ITEM_OWNER(pxListItem);
+
+                    if(pvReturn == pvQueue)
+                    {
+                        extern void vRemoveQueueItemFromList( void * pvQueueHandle );
+                        vRemoveQueueItemFromList( pvReturn );
+                        break;
+                    }
+
+                    pxListItem = pxNext;
+                }
+
                 if(( listLIST_IS_EMPTY( &(pxTCB->xMutexesCurrentlyHeld) ) == pdFALSE))
                 {
                 	pvReturn = listGET_OWNER_OF_HEAD_ENTRY( ( &(pxTCB->xMutexesCurrentlyHeld) ) );
@@ -4727,10 +4748,36 @@ TickType_t uxTaskResetEventItemValue( void )
                 {
                 	pvReturn = NULL;
                 }
+
             }
 
             return pvReturn;
+
         }
+
+        // /* Should be called from CS */
+        // void * pvRemoveMutexToHolderList(void * pvQueue)
+        // {
+        //     void * pvReturn = NULL;
+        //     TCB_t * pxTCB;
+        //     pxTCB = ( TCB_t * ) pxCurrentTCB;
+
+        //     if( ( pxTCB != NULL ) && ( listLIST_IS_EMPTY( &(pxTCB->xMutexesCurrentlyHeld) ) == pdFALSE) )
+        //     {
+        //         pvReturn = listGET_OWNER_OF_HEAD_ENTRY( ( &(pxTCB->xMutexesCurrentlyHeld) ) ); /*lint !e9079 void * is used as this macro is used with timers and co-routines too.  Alignment is known to be fine as the type of the pointer stored and retrieved is the same. */
+        //         vRemoveQueueItemFromList( pvReturn );
+        //         if(( listLIST_IS_EMPTY( &(pxTCB->xMutexesCurrentlyHeld) ) == pdFALSE))
+        //         {
+        //         	pvReturn = listGET_OWNER_OF_HEAD_ENTRY( ( &(pxTCB->xMutexesCurrentlyHeld) ) );
+        //         }
+        //         else
+        //         {
+        //         	pvReturn = NULL;
+        //         }
+        //     }
+
+        //     return pvReturn;
+        // }
 
         void vTaskInheritedPrioritySet( TaskHandle_t xTask,
                             UBaseType_t uxNewPriority )

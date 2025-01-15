@@ -3107,7 +3107,7 @@ TaskHandle_t pvTaskIncrementMutexHeldCount( void ) PRIVILEGED_FUNCTION;
 
     /* Should be called from CS */
     void vInsertMutexToHolderList( TaskHandle_t xTaskHandle, ListItem_t * pxEventListItem );
-    void * pvRemoveMutexToHolderList();
+    void * pvRemoveMutexToHolderList(void * const pvQueue);
         void vTaskInheritedPrioritySet( TaskHandle_t xTask,
                             UBaseType_t uxNewPriority );
     BaseType_t xTaskCeilingPriorityInherit( UBaseType_t uxCeilingPriority );
